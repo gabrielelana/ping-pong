@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project name="zoot" basedir="." default="run.test">
+  <property name="base.dir" location="${basedir}"/>
+  <property name="source.dir" location="${base.dir}/src/jponger"/>
+  <property name="lib.dir" location="${base.dir}/lib"/>
+  <property name="build.dir" location="${base.dir}/jbin"/>
+
+  <target name="compile" depends="-prepare.compile">
+    <javac destdir="${build.dir}" debug="off">            
+      <classpath refid="compile.classpath"/>
+      <src path="${source.dir}"/>
+    </javac>
+  </target>
+
+  <target name="run.server" depends="compile">
+    <java classname="it.gabrielelana.ponger.Server" classpathref="run.classpath" fork="true">
+        <arg value="-Xms512m"/>
+        <arg value="-Xmx512m"/>
+        <arg value="-Xss128k"/>
+        <arg value="-XX:+AggressiveOpts"/>
+        <arg value="-XX:+UseParallelGC"/>
+        <arg value="-XX:+UseBiasedLocking"/>
+        <arg value="-XX:NewSize=64m"/>
+    </java>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <target name="-prepare.compile">
+    <mkdir dir="${build.dir}"/>
+  </target>
+
+  <path id="compile.classpath">
+    <fileset dir="${lib.dir}" includes="*.jar"/>
+  </path>
+
+  <path id="run.classpath">
+    <pathelement location="${build.dir}"/>
+    <fileset dir="${lib.dir}" includes="*.jar"/>
+  </path>
+
+</project>

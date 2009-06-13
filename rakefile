@@ -1,0 +1,35 @@
+require "rake/clean"
+
+CLEAN.include("ebin")
+SOURCE = FileList[ "src/**/*.erl" ]
+MODULES = SOURCE.pathmap("%{src,ebin}X.beam")
+
+SHELL_FLAGS = "+K true +P 500000"
+COMPILER_FLAGS = "-I include +warn_unused_vars +warn_unused_import"
+
+directory "ebin"
+
+desc "compile all source *.erl files under src/"
+task :compile => [ "ebin" ] + MODULES
+rule ".beam" => [ "%{ebin,src}X.erl" ] do | task |
+	puts "compile: #{task.source}"
+	sh "erlc -pa ebin -DTEST -W #{COMPILER_FLAGS} -o ebin #{task.source}"
+end
+
+desc "run tests for all modules under ebin/"
+task :test => [ :compile ] do
+  MODULES.each do | module_file |
+  	module_name = File.basename(module_file, ".beam")
+	if File.exist?("test/#{module_name}.hrl")
+		puts "module: #{module_name}"
+		puts `erl -noshell -pa ebin -run #{module_name} test -run init stop`
+		puts "---"
+	end
+  end
+end
+
+task :shell => [ :compile ] do
+	sh "erl #{SHELL_FLAGS} -pa ebin"
+end
+
+task :default => :compile
